@@ -196,6 +196,14 @@ static int apply_kernelsu_rules_fn(void *ptr)
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "getpgid");
     ksu_allow(db, "system_server", KERNEL_SU_DOMAIN, "process", "sigkill");
 
+    // Suppress dirty sepolicy oracle signals used by detection apps
+    // system_server execmem: dontaudit prevents app_zygote carrier from observing it
+    ksu_dontaudit(db, "system_server", "system_server", "process", "execmem");
+    // Suppress app_zygote -> /data/adb access audit logs
+    ksu_dontaudit(db, "untrusted_app", "adb_data_file", "dir", "search");
+    ksu_dontaudit(db, "untrusted_app", "adb_data_file", "file", "read");
+    ksu_dontaudit(db, "untrusted_app", "adb_data_file", "dir", "getattr");
+
     return 0;
 }
 

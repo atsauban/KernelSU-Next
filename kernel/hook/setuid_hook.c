@@ -24,6 +24,15 @@
 #include "feature/kernel_umount.h"
 #include "compat/kernel_compat.h"
 
+#include <linux/workqueue.h>
+#include "manager/throne_tracker.h"
+
+static void ksu_track_throne_work_fn(struct work_struct *work)
+{
+	track_throne(false);
+}
+static DECLARE_WORK(ksu_track_throne_work, ksu_track_throne_work_fn);
+
 int ksu_handle_setresuid(uid_t old_uid, uid_t new_uid)
 {
     // we rely on the fact that zygote always call setresuid(3) with same uids
