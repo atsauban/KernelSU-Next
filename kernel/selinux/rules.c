@@ -96,7 +96,9 @@ static int apply_kernelsu_rules_fn(void *ptr)
 	struct policydb *db = (struct policydb *)ptr;
 
     ksu_type(db, KERNEL_SU_DOMAIN, "domain");
-    ksu_permissive(db, KERNEL_SU_DOMAIN);
+    // Use enforce instead of permissive: permissive domain leaks via
+    // selinux_check_access oracle (app_zygote carrier sees system_server
+    // execmem as allowed). Enforce + explicit allow list is cleaner.
     ksu_typeattribute(db, KERNEL_SU_DOMAIN, "mlstrustedsubject");
     ksu_typeattribute(db, KERNEL_SU_DOMAIN, "netdomain");
     ksu_typeattribute(db, KERNEL_SU_DOMAIN, "bluetoothdomain");
@@ -106,7 +108,8 @@ static int apply_kernelsu_rules_fn(void *ptr)
     ksu_typeattribute(db, KERNEL_SU_FILE, "mlstrustedobject");
     ksu_allow(db, "domain", KERNEL_SU_FILE, ALL, ALL);
 
-    // allow all!
+    // allow all! (su domain can do everything it needs)
+    ksu_allow(db, KERNEL_SU_DOMAIN, "process", "process", "execmem");
     ksu_allow(db, KERNEL_SU_DOMAIN, ALL, ALL, ALL);
 
     // allow us do any ioctl
